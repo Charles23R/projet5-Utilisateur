@@ -4,15 +4,21 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 
 public class Main extends Application {
     public static void main(String[] args) {launch(args);}
+
+    public static HashMap<String,Utilisateur> map = new HashMap<String, Utilisateur>();
+    public static ArrayList<String> liste = new ArrayList<String>();
 
     @Override
     public void start(Stage primaryStage) {
         //Set le primary stage
         primaryStage.setWidth(600);
-        primaryStage.setHeight(600);
+        primaryStage.setHeight(700);
         primaryStage.setTitle("The otaku club");
         primaryStage.setResizable(false);
 
@@ -48,19 +54,43 @@ public class Main extends Application {
         mdpUtil.setTranslateX(250);
 
         Button sinscrire = new Button("S'inscrire");
-        sinscrire.setTranslateX(345);
+        sinscrire.setTranslateX(365);
         sinscrire.setTranslateY(230);
 
         Button connecter = new Button("Se connecter");
         connecter.setTranslateX(250);
         connecter.setTranslateY(230);
 
-        sinscrire.setOnAction((event ->
-                primaryStage.setScene(sceneInscription)));
+        Label erreur2 = new Label("");
+        erreur2.setTranslateX(150);
+        erreur2.setTranslateY(270);
 
-        connecter.setOnAction((event -> {
-            primaryStage.setScene(sceneApp);
-        }));
+        sinscrire.setOnAction((event ->{
+                    mdpUtilLogin.clear();
+                    nomUtilLogin.clear();
+                    erreur2.setText("");
+                    primaryStage.setScene(sceneInscription);
+                }));
+
+
+        connecter.setOnAction((event) -> {
+
+            if (map.containsKey(nomUtilLogin.getText())){
+                if (mdpUtilLogin.getText().equals(map.get(nomUtilLogin.getText()).getMdp())){
+                    primaryStage.setScene(sceneApp);
+                    mdpUtilLogin.clear();
+                    nomUtilLogin.clear();
+                    erreur2.setText("");
+                }
+                else {
+                    erreur2.setText("Mot de passe incorect");
+                }
+            }
+            else
+                erreur2.setText("*Ce nom d'utilisateur n'existe pas");
+
+
+        });
 
         //Scene Inscription
         Label prenom = new Label("Prénom");
@@ -117,11 +147,11 @@ public class Main extends Application {
         homme.setTranslateY(300);
 
         RadioButton femme = new RadioButton("Femme");
-        femme.setTranslateX(330);
+        femme.setTranslateX(350);
         femme.setTranslateY(300);
 
         RadioButton autre = new RadioButton("Autre");
-        autre.setTranslateX(400);
+        autre.setTranslateX(440);
         autre.setTranslateY(300);
 
         ToggleGroup hfa = new ToggleGroup();
@@ -139,19 +169,23 @@ public class Main extends Application {
 
         CheckBox conditions = new CheckBox("J'accepte les conditions d'utilisation");
         conditions.setTranslateX(250);
-        conditions.setTranslateY(380);
+        conditions.setTranslateY(400);
 
         Button inscrire = new Button("S'inscrire");
         inscrire.setTranslateX(250);
-        inscrire.setTranslateY(420);
+        inscrire.setTranslateY(440);
 
         Button effacer = new Button("Effacer");
-        effacer.setTranslateX(320);
-        effacer.setTranslateY(420);
+        effacer.setTranslateX(340);
+        effacer.setTranslateY(440);
 
         Button retour = new Button("Retour");
-        retour.setTranslateX(380);
-        retour.setTranslateY(420);
+        retour.setTranslateX(420);
+        retour.setTranslateY(440);
+
+        Label erreur = new Label("");
+        erreur.setTranslateX(150);
+        erreur.setTranslateY(470);
 
         retour.setOnAction((event ->{
                     primaryStage.setScene(sceneLogin);
@@ -170,6 +204,64 @@ public class Main extends Application {
             autre.setSelected(false);
             conditions.setSelected(false);
             spinner.getValueFactory().setValue(18);
+            erreur.setText("");
+        }));
+
+        inscrire.setOnAction((event -> {
+            boolean ok =true;
+            erreur.setText("");
+
+            if (prenomField.getText().isEmpty() ||
+                    familleField.getText().isEmpty() ||
+                    utilNomField.getText().isEmpty() ||
+                    mdpInscri.getText().isEmpty() ||
+                    mdpInscri2.getText().isEmpty() ||
+                    (!homme.isSelected() && !femme.isSelected() && !autre.isSelected())){
+
+                erreur.setText(erreur.getText()+"\n*Tous les champs sont obligatoires");
+                ok=false;
+            }
+
+            if (!verif(prenomField.getText()) ||
+                    verif(familleField.getText())){
+                erreur.setText(erreur.getText()+"\n*Les caractères spéciaux sont interdits dans le prénom et nom de famille");
+                ok=false;
+            }
+
+            if (!existant(utilNomField.getText())){
+                erreur.setText(erreur.getText()+"\n*Ce nom d'utilisateur existe déjà");
+                ok=false;
+            }
+
+            if (!motPasse2.getText().equals(motPasse1.getText())){
+                erreur.setText(erreur.getText()+"\n*Veuillez reconfirmer le mot de passe");
+                ok=false;
+            }
+
+            if (!conditions.isSelected()){
+                erreur.setText(erreur.getText()+"\n*Veuillez accepter les conditions d'utilisation");
+                ok=false;
+            }
+
+            if (ok){
+                Utilisateur temp = new Utilisateur();
+                liste.add(prenomField.getText());
+                temp.setPrenom(prenomField.getText());
+                temp.setNomDeFamille(familleField.getText());
+                temp.setNomUtil(utilNomField.getText());
+                temp.setMdp(mdpInscri.getText());
+                temp.setAge(spinner.getValue().toString());
+                if (homme.isSelected())
+                    temp.setGenre("Homme");
+                else if (femme.isSelected())
+                    temp.setGenre("Femme");
+                else
+                    temp.setGenre("Autre");
+
+                map.put(utilNomField.getText(), temp);
+
+                retour.fire();
+            }
         }));
 
         //App
@@ -189,6 +281,7 @@ public class Main extends Application {
         login.getChildren().add(nomUtil);
         login.getChildren().add(sinscrire);
         login.getChildren().add(connecter);
+        login.getChildren().add(erreur2);
 
         inscription.getChildren().add(prenom);
         inscription.getChildren().add(prenomField);
@@ -210,6 +303,7 @@ public class Main extends Application {
         inscription.getChildren().add(inscrire);
         inscription.getChildren().add(retour);
         inscription.getChildren().add(effacer);
+        inscription.getChildren().add(erreur);
 
         app.getChildren().add(rond);
         app.getChildren().add(chargement);
@@ -218,5 +312,59 @@ public class Main extends Application {
 
         primaryStage.setScene(sceneLogin);
         primaryStage.show();
+    }
+
+    public static boolean verif(String chaine){
+        for (int i=0; i<chaine.length(); i++){
+            if (    chaine.charAt(i)=='!' ||
+                    chaine.charAt(i)=='"' ||
+                    chaine.charAt(i)=='/' ||
+                    chaine.charAt(i)=='$' ||
+                    chaine.charAt(i)=='%' ||
+                    chaine.charAt(i)=='?' ||
+                    chaine.charAt(i)=='&' ||
+                    chaine.charAt(i)=='*' ||
+                    chaine.charAt(i)=='(' ||
+                    chaine.charAt(i)==')' ||
+                    chaine.charAt(i)=='1' ||
+                    chaine.charAt(i)=='2' ||
+                    chaine.charAt(i)=='3' ||
+                    chaine.charAt(i)=='4' ||
+                    chaine.charAt(i)=='5' ||
+                    chaine.charAt(i)=='6' ||
+                    chaine.charAt(i)=='7' ||
+                    chaine.charAt(i)=='8' ||
+                    chaine.charAt(i)=='9' ||
+                    chaine.charAt(i)=='0' ||
+                    chaine.charAt(i)=='-' ||
+                    chaine.charAt(i)=='=' ||
+                    chaine.charAt(i)=='+' ||
+                    chaine.charAt(i)=='_' ||
+                    chaine.charAt(i)=='^' ||
+                    chaine.charAt(i)=='<' ||
+                    chaine.charAt(i)=='>' ||
+                    chaine.charAt(i)==',' ||
+                    chaine.charAt(i)=='.' ||
+                    chaine.charAt(i)=='}' ||
+                    chaine.charAt(i)=='{' ||
+                    chaine.charAt(i)==';' ||
+                    chaine.charAt(i)=='~' ||
+                    chaine.charAt(i)=='±' ||
+                    chaine.charAt(i)=='@' ||
+                    chaine.charAt(i)=='£' ||
+                    chaine.charAt(i)=='¢' ){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean existant(String chaine){
+        for (int i=0; i<liste.size(); i++){
+            if (chaine.equals(liste.get(i))){
+                return false;
+            }
+        }
+        return true;
     }
 }
