@@ -9,9 +9,11 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +31,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             file = new File("youhouCVS.txt");
-            load(file);
+            load();
         } catch (Exception e){
             System.out.println("Aucun fichier n'existe au nom youhouCVS.txt");
         }
@@ -96,7 +98,7 @@ public class Main extends Application {
         connecter.setOnAction((event) -> {
 
             if (map.containsKey(nomUtilLogin.getText())){
-                if (mdpUtilLogin.getText().equals(map.get(nomUtilLogin.getText()).getMdp())){
+                if (hash(mdpUtilLogin.getText()).equals(map.get(nomUtilLogin.getText()).getMdp())){
                     primaryStage.setScene(sceneApp);
                     mdpUtilLogin.clear();
                     nomUtilLogin.clear();
@@ -268,7 +270,7 @@ public class Main extends Application {
                 temp.setPrenom(prenomField.getText());
                 temp.setNomDeFamille(familleField.getText());
                 temp.setNomUtil(utilNomField.getText());
-                temp.setMdp(motPasse1.getText());
+                temp.setMdp(hash(motPasse1.getText()));
                 temp.setAge(spinner.getValue().toString());
                 if (homme.isSelected())
                     temp.setGenre("Homme");
@@ -284,7 +286,7 @@ public class Main extends Application {
                     if (file.exists())
                         Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes(), StandardOpenOption.APPEND);
                     else
-                        Files.write(Paths.get("youhouCVS.csv"), ecrire.getBytes(), StandardOpenOption.CREATE);
+                        Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes(), StandardOpenOption.CREATE);
                 }catch (Exception e){
                     System.out.println("");
                 }
@@ -400,11 +402,12 @@ public class Main extends Application {
         return ok;
     }
 
-    public static void load(File file){
+    public static void load(){
         try {
             List<String> allLines = Files.readAllLines(Paths.get("youhouCVS.txt"));
             String chaine;
-            for (int i = 0; (chaine = allLines.get(i)) != null; i++) {
+            for (int i = 0; i<allLines.size(); i++) {
+                chaine = allLines.get(i);
                 String[] subStr = chaine.split(",");
                 map.put(subStr[2], new Utilisateur(subStr[0], subStr[1], subStr[2], subStr[3], subStr[4], subStr[5]));
                 liste.add(subStr[2]);
@@ -413,5 +416,25 @@ public class Main extends Application {
             System.out.println("Impossible de charger le fichier");
         }
 
+    }
+
+    public static String hash(String chaine){
+
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedhash = digest.digest(
+                    chaine.getBytes(StandardCharsets.UTF_8));
+
+            StringBuffer hexString = new StringBuffer();
+            for (int i = 0; i < encodedhash.length; i++) {
+                String hex = Integer.toHexString(0xff & encodedhash[i]);
+                if(hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+                return hexString.toString();
+            }
+        }catch (Exception e){
+            System.out.println("Hashing error");
+        }
+        return null;
     }
 }
