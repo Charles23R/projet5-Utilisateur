@@ -2,10 +2,18 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class Main extends Application {
@@ -16,8 +24,16 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        try {
+            File file = new File("youhouCVS.txt");
+            load(file);
+        } catch (Exception e){
+            System.out.println("Aucun fichier n'existe au nom youhouCVS.txt");
+        }
+
+
         //Set le primary stage
-        primaryStage.setWidth(600);
+        primaryStage.setWidth(700);
         primaryStage.setHeight(700);
         primaryStage.setTitle("The otaku club");
         primaryStage.setResizable(false);
@@ -64,6 +80,7 @@ public class Main extends Application {
         Label erreur2 = new Label("");
         erreur2.setTranslateX(150);
         erreur2.setTranslateY(270);
+        erreur2.setTextFill(Color.RED);
 
         sinscrire.setOnAction((event ->{
                     mdpUtilLogin.clear();
@@ -88,8 +105,6 @@ public class Main extends Application {
             }
             else
                 erreur2.setText("*Ce nom d'utilisateur n'existe pas");
-
-
         });
 
         //Scene Inscription
@@ -184,8 +199,9 @@ public class Main extends Application {
         retour.setTranslateY(440);
 
         Label erreur = new Label("");
-        erreur.setTranslateX(150);
+        erreur.setTranslateX(50);
         erreur.setTranslateY(470);
+        erreur.setTextFill(Color.RED);
 
         retour.setOnAction((event ->{
                     primaryStage.setScene(sceneLogin);
@@ -214,8 +230,8 @@ public class Main extends Application {
             if (prenomField.getText().isEmpty() ||
                     familleField.getText().isEmpty() ||
                     utilNomField.getText().isEmpty() ||
-                    mdpInscri.getText().isEmpty() ||
-                    mdpInscri2.getText().isEmpty() ||
+                    motPasse1.getText().isEmpty() ||
+                    motPasse2.getText().isEmpty() ||
                     (!homme.isSelected() && !femme.isSelected() && !autre.isSelected())){
 
                 erreur.setText(erreur.getText()+"\n*Tous les champs sont obligatoires");
@@ -223,12 +239,12 @@ public class Main extends Application {
             }
 
             if (!verif(prenomField.getText()) ||
-                    verif(familleField.getText())){
+                    !verif(familleField.getText())){
                 erreur.setText(erreur.getText()+"\n*Les caractères spéciaux sont interdits dans le prénom et nom de famille");
                 ok=false;
             }
 
-            if (!existant(utilNomField.getText())){
+            if (existant(utilNomField.getText())){
                 erreur.setText(erreur.getText()+"\n*Ce nom d'utilisateur existe déjà");
                 ok=false;
             }
@@ -249,7 +265,7 @@ public class Main extends Application {
                 temp.setPrenom(prenomField.getText());
                 temp.setNomDeFamille(familleField.getText());
                 temp.setNomUtil(utilNomField.getText());
-                temp.setMdp(mdpInscri.getText());
+                temp.setMdp(motPasse1.getText());
                 temp.setAge(spinner.getValue().toString());
                 if (homme.isSelected())
                     temp.setGenre("Homme");
@@ -260,13 +276,21 @@ public class Main extends Application {
 
                 map.put(utilNomField.getText(), temp);
 
+                try {
+                    String ecrire = temp.getPrenom()+","+temp.getNomDeFamille()+","+temp.getNomUtil()+","+temp.getMdp()+","+temp.getGenre()+","+temp.getAge();
+                    Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes() );
+                }catch (Exception e){
+                    System.out.println("");
+                }
+
+
                 retour.fire();
             }
         }));
 
         //App
         ProgressIndicator rond = new ProgressIndicator();
-        rond.setTranslateX(250);
+        rond.setTranslateX(280);
         rond.setTranslateY(250);
 
         Label chargement = new Label("Chargement du contenu");
@@ -315,6 +339,7 @@ public class Main extends Application {
     }
 
     public static boolean verif(String chaine){
+        boolean ok=true;
         for (int i=0; i<chaine.length(); i++){
             if (    chaine.charAt(i)=='!' ||
                     chaine.charAt(i)=='"' ||
@@ -353,18 +378,34 @@ public class Main extends Application {
                     chaine.charAt(i)=='@' ||
                     chaine.charAt(i)=='£' ||
                     chaine.charAt(i)=='¢' ){
-                return false;
+                ok = false;
             }
         }
-        return true;
+        return ok;
     }
 
     public static boolean existant(String chaine){
+        boolean ok=false;
         for (int i=0; i<liste.size(); i++){
             if (chaine.equals(liste.get(i))){
-                return false;
+                ok=true;
             }
         }
-        return true;
+        return ok;
+    }
+
+    public static void load(File file){
+        try {
+            List<String> allLines = Files.readAllLines(Paths.get("youhouCVS.txt"));
+            String chaine;
+            for (int i = 0; (chaine = allLines.get(i)) != null; i++) {
+                String[] subStr = chaine.split(",");
+                map.put(subStr[2], new Utilisateur(subStr[0], subStr[1], subStr[2], subStr[3], subStr[4], subStr[5]));
+                liste.add(subStr[2]);
+            }
+        }catch (Exception e){
+            System.out.println("Impossible de charger le fichier");
+        }
+
     }
 }
