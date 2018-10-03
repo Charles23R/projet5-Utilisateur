@@ -11,12 +11,15 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 
 public class Main extends Application {
+    private File file;
+
     public static void main(String[] args) {launch(args);}
 
     public static HashMap<String,Utilisateur> map = new HashMap<String, Utilisateur>();
@@ -25,7 +28,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            File file = new File("youhouCVS.txt");
+            file = new File("youhouCVS.txt");
             load(file);
         } catch (Exception e){
             System.out.println("Aucun fichier n'existe au nom youhouCVS.txt");
@@ -277,8 +280,11 @@ public class Main extends Application {
                 map.put(utilNomField.getText(), temp);
 
                 try {
-                    String ecrire = temp.getPrenom()+","+temp.getNomDeFamille()+","+temp.getNomUtil()+","+temp.getMdp()+","+temp.getGenre()+","+temp.getAge();
-                    Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes() );
+                    String ecrire = temp.getPrenom()+","+temp.getNomDeFamille()+","+temp.getNomUtil()+","+temp.getMdp()+","+temp.getGenre()+","+temp.getAge()+"\n";
+                    if (file.exists())
+                        Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes(), StandardOpenOption.APPEND);
+                    else
+                        Files.write(Paths.get("youhouCVS.csv"), ecrire.getBytes(), StandardOpenOption.CREATE);
                 }catch (Exception e){
                     System.out.println("");
                 }
