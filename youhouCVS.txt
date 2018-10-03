@@ -1,2 +1,0 @@
-w,w,w,ec,Homme,18
-u,u,u,c6,Homme,18

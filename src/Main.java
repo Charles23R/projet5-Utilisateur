@@ -30,7 +30,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            file = new File("youhouCVS.txt");
+            file = new File("youhouCVS.csv");
             load();
         } catch (Exception e){
             System.out.println("Aucun fichier n'existe au nom youhouCVS.txt");
@@ -284,9 +284,9 @@ public class Main extends Application {
                 try {
                     String ecrire = temp.getPrenom()+","+temp.getNomDeFamille()+","+temp.getNomUtil()+","+temp.getMdp()+","+temp.getGenre()+","+temp.getAge()+"\n";
                     if (file.exists())
-                        Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes(), StandardOpenOption.APPEND);
+                        Files.write(Paths.get("youhouCVS.csv"), ecrire.getBytes(), StandardOpenOption.APPEND);
                     else
-                        Files.write(Paths.get("youhouCVS.txt"), ecrire.getBytes(), StandardOpenOption.CREATE);
+                        Files.write(Paths.get("youhouCVS.csv"), ecrire.getBytes(), StandardOpenOption.CREATE);
                 }catch (Exception e){
                     System.out.println("");
                 }
@@ -404,7 +404,7 @@ public class Main extends Application {
 
     public static void load(){
         try {
-            List<String> allLines = Files.readAllLines(Paths.get("youhouCVS.txt"));
+            List<String> allLines = Files.readAllLines(Paths.get("youhouCVS.csv"));
             String chaine;
             for (int i = 0; i<allLines.size(); i++) {
                 chaine = allLines.get(i);
